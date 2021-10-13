@@ -1,0 +1,61 @@
+{
+  "name": "boilerplat-express",
+  "version": "5.1.4",
+  "description": "A Starter for Node.js web applications",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/abdodeve/express-starter"
+  },
+  "license": "MIT",
+  "author": "Abdelhadi Habchi",
+  "contributors": [
+    "Abdelhadi Habchi (https://github.com/abdodeve)"
+  ],
+  "scripts": {
+    "start": "node app.js",
+    "test": "mocha",
+    "lint": "eslint \"**/*.js\""
+  },
+  "dependencies": {
+    "axios": "^0.18.1",
+    "body-parser": "^1.19.0",
+    "chalk": "^2.4.2",
+    "compression": "^1.7.4",
+    "dotenv": "^8.6.0",
+    "errorhandler": "^1.5.0",
+    "express": "^4.17.1",
+    "express-flash": "^0.0.2",
+    "express-handlebars": "^3.1.0",
+    "express-session": "^1.17.2",
+    "express-status-monitor": "^1.3.3",
+    "express-validator": "^5.3.1",
+    "http-errors": "^1.8.0",
+    "jquery": "^3.6.0",
+    "jsonwebtoken": "^8.5.1",
+    "lastfm": "^0.9.3",
+    "lob": "^6.4.0",
+    "lodash": "^4.17.21",
+    "morgan": "^1.10.0",
+    "popper.js": "^1.16.1",
+    "request": "^2.88.2",
+    "socket.io": "^4.2.0",
+    "twitter": "^1.7.1",
+    "validator": "^10.11.0"
+  },
+  "devDependencies": {
+    "chai": "^4.3.4",
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.2.0",
+    "eslint-plugin-chai-friendly": "^0.4.1",
+    "eslint-plugin-import": "^2.24.2",
+    "mocha": "^6.2.3",
+    "nodemon": "^2.0.13",
+    "nyc": "^14.0.0",
+    "sinon": "^7.5.0",
+    "supertest": "^4.0.2"
+  },
+  "engines": {
+    "node": ">=8.15.1",
+    "npm": ">=6.4.1"
+  }
+}
