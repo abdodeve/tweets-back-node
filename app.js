@@ -63,10 +63,6 @@ app.use(EnablingCorsMiddleware);
 app.use("/api", api_routes);
 
 //, jwtMiddleware.checkToken
-app.get("/privatRessource", (req, res) => {
-  console.log("last middleware", res.locals.userData);
-  res.json({ success: "true", message: "you can access" });
-});
 
 /**
  * Switch between dev/prod
@@ -85,7 +81,7 @@ if (process.env.NODE_ENV === "development") {
 }
 
 // catch 404 errors to json
-app.use(NotFoundMiddleware);
+// app.use(NotFoundMiddleware);
 /*
  ***************************************
  * END Middlewares
@@ -126,26 +122,111 @@ const server = app.listen(app.get("port"), () => {
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3001",
+    origin: "http://localhost:3000",
   },
 });
 
-io.on("connection", (socket) => {
-  console.log("a user connected");
+app.get("/searchTwitter", (req, res) => {
+  console.log("last middleware", req.query.firstKyeword);
 
-  client.stream("statuses/filter", { track: "love" }, (stream) => {
-    stream.on("data", (tweet) => {
-      //  console.log(tweet.text);
-      // console.log(tweet);
-      //  socket.emit("news_by_server", tweet.text);
-    });
-    stream.on("error", (error) => {
-      console.log(error);
-    });
+  // client.stream(
+  //   "statuses/filter",
+  //   { track: req.query.firstKyeword },
+  //   (stream) => {
+  //     stream.on("data", (tweet) => {
+  //       console.log(tweet.text);
+  //       io.on("connection", (socket) => {
+  //         console.log("a user connected");
+  //         socket.emit("news_by_server", tweet.text);
+  //       });
+  //       // console.log(tweet);
+  //       // socket.emit("news_by_server", tweet.text);
+  //     });
+  //     stream.on("error", (error) => {
+  //       console.log(error);
+  //     });
+  //   }
+  // );
+
+  io.on("connection", (socket) => {
+    console.log("a user connected");
+
+    // client.stream(
+    //   "statuses/filter",
+    //   { track: req.query.firstKyeword },
+    //   (stream) => {
+    //     stream.on("data", (tweet) => {
+    //       console.log(tweet.text);
+    //       // console.log(tweet);
+    //       // socket.emit("news_by_server", tweet.text);
+    //     });
+    //     stream.on("error", (error) => {
+    //       console.log(error);
+    //     });
+    //   }
+    // );
+    setInterval(() => {
+      socket.emit("news_by_server", "Cow goes moo");
+      console.log("Cow goes moo");
+    }, 1000);
   });
-  // setInterval(() => {
-  //   socket.emit("news_by_server", "Cow goes moo");
-  // }, 1000);
+  res.json({
+    success: "true",
+    message: "you can access",
+    data: req.query.firstKyeword,
+  });
+});
+
+var _stream1 = null;
+var _stream2 = null;
+var room = "twitter_search";
+
+io.on("connection", (socket) => {
+  console.log("a user connected", io.engine.clientsCount);
+
+  socket.on("room", function (room) {
+    socket.join(room);
+  });
+
+  socket.on("stop_search", function (data) {
+    if (_stream1) _stream1.destroy();
+    if (_stream2) _stream2.destroy();
+  });
+
+  socket.on("send_keywords", function ({ firstKeyword, secondeKeyword }) {
+    console.log(`data received is==>`, firstKeyword, secondeKeyword);
+    if (_stream1) _stream1.destroy();
+    if (_stream2) _stream2.destroy();
+
+    client.stream("statuses/filter", { track: firstKeyword }, (stream) => {
+      _stream1 = stream;
+      stream.on("data", (tweet) => {
+        console.log(tweet);
+        // socket.emit("news_by_server", tweet.text);
+        io.sockets.in(room).emit("send_tweet_1", tweet.text);
+      });
+      stream.on("error", (error) => {
+        console.log(error);
+      });
+    });
+
+    client.stream("statuses/filter", { track: secondeKeyword }, (stream) => {
+      _stream2 = stream;
+      stream.on("data", (tweet) => {
+        // console.log(tweet.text);
+        // socket.emit("news_by_server", tweet.text);
+        io.sockets.in(room).emit("send_tweet_2", tweet.text);
+      });
+      stream.on("error", (error) => {
+        console.log(error);
+      });
+    });
+
+    // setInterval(() => {
+    //   console.log("111");
+    //   socket.emit("news_by_server", data);
+    // }, 2000);
+  });
 });
 
 module.exports = app;
