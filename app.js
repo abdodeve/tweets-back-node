@@ -21,6 +21,7 @@ const NotFoundMiddleware = require("./Middlewares/NotFoundlMiddleware");
 const ServerErrorMiddleware = require("./Middlewares/ServerErrorMiddleware");
 const EnablingCorsMiddleware = require("./Middlewares/EnablingCorsMiddleware");
 const jwtMiddleware = require("./Middlewares/JwtMiddleware");
+const isNumber = require("lodash.isnumber");
 
 /**
  * Load environment variables from .env file, where API keys and passwords are configured.
@@ -96,10 +97,6 @@ app.get("/", (req, res) => {
  * Socket IO
  */
 
-// server.listen(app.get("port"), () => {
-//   console.log("listening on *:3000");
-// });
-
 let client = new Twitter({
   consumer_key: "wGvstC7IYmO1KX7JT6ttBPEJ9",
   consumer_secret: "5PQpUzWUD9CoodpAYtr4H9L81XDHeOjCIkhclwj4fK81M3XUuO",
@@ -126,57 +123,6 @@ const io = new Server(server, {
   },
 });
 
-app.get("/searchTwitter", (req, res) => {
-  console.log("last middleware", req.query.firstKyeword);
-
-  // client.stream(
-  //   "statuses/filter",
-  //   { track: req.query.firstKyeword },
-  //   (stream) => {
-  //     stream.on("data", (tweet) => {
-  //       console.log(tweet.text);
-  //       io.on("connection", (socket) => {
-  //         console.log("a user connected");
-  //         socket.emit("news_by_server", tweet.text);
-  //       });
-  //       // console.log(tweet);
-  //       // socket.emit("news_by_server", tweet.text);
-  //     });
-  //     stream.on("error", (error) => {
-  //       console.log(error);
-  //     });
-  //   }
-  // );
-
-  io.on("connection", (socket) => {
-    console.log("a user connected");
-
-    // client.stream(
-    //   "statuses/filter",
-    //   { track: req.query.firstKyeword },
-    //   (stream) => {
-    //     stream.on("data", (tweet) => {
-    //       console.log(tweet.text);
-    //       // console.log(tweet);
-    //       // socket.emit("news_by_server", tweet.text);
-    //     });
-    //     stream.on("error", (error) => {
-    //       console.log(error);
-    //     });
-    //   }
-    // );
-    setInterval(() => {
-      socket.emit("news_by_server", "Cow goes moo");
-      console.log("Cow goes moo");
-    }, 1000);
-  });
-  res.json({
-    success: "true",
-    message: "you can access",
-    data: req.query.firstKyeword,
-  });
-});
-
 var _stream1 = null;
 var _stream2 = null;
 var room = "twitter_search";
@@ -194,16 +140,19 @@ io.on("connection", (socket) => {
   });
 
   socket.on("send_keywords", function ({ firstKeyword, secondeKeyword }) {
-    console.log(`data received is==>`, firstKeyword, secondeKeyword);
     if (_stream1) _stream1.destroy();
     if (_stream2) _stream2.destroy();
 
     client.stream("statuses/filter", { track: firstKeyword }, (stream) => {
       _stream1 = stream;
       stream.on("data", (tweet) => {
-        console.log(tweet);
-        // socket.emit("news_by_server", tweet.text);
-        io.sockets.in(room).emit("send_tweet_1", tweet.text);
+        const tweetObj = {
+          text: tweet.text,
+          retweet_count: isNumber(tweet?.quoted_status?.retweet_count)
+            ? tweet?.quoted_status?.retweet_count
+            : 0,
+        };
+        io.sockets.in(room).emit("send_tweet_1", tweetObj);
       });
       stream.on("error", (error) => {
         console.log(error);
@@ -213,19 +162,18 @@ io.on("connection", (socket) => {
     client.stream("statuses/filter", { track: secondeKeyword }, (stream) => {
       _stream2 = stream;
       stream.on("data", (tweet) => {
-        // console.log(tweet.text);
-        // socket.emit("news_by_server", tweet.text);
-        io.sockets.in(room).emit("send_tweet_2", tweet.text);
+        const tweetObj = {
+          text: tweet.text,
+          retweet_count: isNumber(tweet?.quoted_status?.retweet_count)
+            ? tweet?.quoted_status?.retweet_count
+            : 0,
+        };
+        io.sockets.in(room).emit("send_tweet_2", tweetObj);
       });
       stream.on("error", (error) => {
         console.log(error);
       });
     });
-
-    // setInterval(() => {
-    //   console.log("111");
-    //   socket.emit("news_by_server", data);
-    // }, 2000);
   });
 });
 
